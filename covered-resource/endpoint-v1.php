@@ -34,6 +34,9 @@ define('CONST_RATE_TXT_ZERO', 'zero');
 define('CONST_RATE_TXT_LOW', 'low');
 define('CONST_RATE_TXT_NORMAL', 'normal');
 define('CONST_RATE_DEFAULT', CONST_RATE_TXT_NORMAL);
+define('CONST_TXT_IDV1', 'idv1');
+define('CONST_TXT_RATEV1', 'ratev1');
+define('CONST_TXT_AUTHV1', 'authv1');
 
 define('CONST_VERSION', '0.1');
 define('CONST_ROLE', CONST_ROLE_TXT_SERVER);
@@ -210,9 +213,11 @@ class OutHeaders extends BerewicHeaders {
 		$this->setVersion($version);
 		$this->setRole($role);
 		$idv1 = hash('crc32', $ip_address);
-		$auth = hash('ripemd160', $idv1 . $ratev1 . BEREWIC_SECRET);
+		$authv1 = hash('ripemd160', $idv1 . $ratev1 . BEREWIC_SECRET);
 
-		$params = '?idv1=' . $idv1 . '&ratev1=' . $ratev1 . '&auth=' . $auth;
+		$params = '?' . CONST_TXT_IDV1 . '=' . $idv1 .
+			'&' . CONST_TXT_RATEV1 . '=' . $ratev1 .
+			'&' . CONST_TXT_AUTHV1 . '=' . $authv1;
 		$this->addCryptTransportAgent('20', BEREWIC_BTA_1 . $params);
 		$this->addCryptTransportAgent('10', BEREWIC_BTA_2 . $params);
 	}
