@@ -8,3 +8,10 @@ A PHP file that can determine the bonding status of incoming connections.
 
 ## /berewic-transport-agent/berewic_server_v1.php
 A PHP file simulating a BTA
+
+## /berewic-user-agent/post-bond.php
+A Bash script simulating a BUA 
+post-bond.php, a PHP file to handle some aspects
+
+## /berewic-bitcoin/berewic-bitcoin.php
+A PHP library containing classes useful for simulating berewic back end functionality
