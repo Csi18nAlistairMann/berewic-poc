@@ -237,7 +237,7 @@ class berewicCrypto {
     return $hash2;
   }
 
-  function changeEndianNess($before) {
+  function changeEndianNess($before, $add_count) {
     $during = $before;
     if (strlen($during) % 2 !== 0) {
       // hex should be even chars long
@@ -254,9 +254,18 @@ class berewicCrypto {
 	$to .= $move;
 	$count++;
       }
-      $after = '0' . $count . $to;
+      if ($add_count === true) {
+	$after = '0' . $count . $to;
+      } else {
+	$after = $to;
+      }
 
     } else {
+      if ($add_count) {
+	$count = '01';
+      } else {
+	$count = '';
+      }
       $after = '01' . $during;
     }
     return $after;
@@ -350,7 +359,7 @@ class berewicRedeemScript {
 
   function getRedeemScript(): string {
     if ($this->locktime < CONST_NLOCKTIME_BORDER) {
-      $locktime2 = berewicCrypto::changeEndianNess($this->locktime);
+      $locktime2 = berewicCrypto::changeEndianNess($this->locktime, true);
 
     } else {
       $locktime2 = $this->locktime;
