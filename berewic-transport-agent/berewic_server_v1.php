@@ -53,7 +53,7 @@ function fakeAResponse($idv1, $ratev1) {
 									'value' => $value),
 				   'network' => array('networkname' => 'testnet',
 									  'seller-address' => '2MvHsfFpR6FBxs8vNNTKBe46vnhuYtDLpRR'),
-				   'min-timeout' => array('minblockheight' =>
+				   'min-timeout' => array('minblocktime' =>
 										  time() + CONST_MIN_BONDING_PERIOD));
 	$sugg2 = array('version' => '0.1',
 				   'type' => 'payment',
