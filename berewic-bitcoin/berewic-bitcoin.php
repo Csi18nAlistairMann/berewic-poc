@@ -2,12 +2,13 @@
 //
 // globals
 declare(strict_types = 1);
+error_reporting(E_ALL);
 bcscale(9); // A satoshi tracks the 8th decimal place. I say 9 for rounding
 //
 // imports
-require_once('easybitcoin.php');
-require_once('berewic-defines.php');
-require_once('base58.php');
+require_once('./easybitcoin.php');
+require_once('./berewic-defines.php');
+require_once('./base58.php');
 //
 // defines
 define('EXC_ADDRESS_FAILS_CHECKS', 'Address doesn\'t pass checks');
@@ -501,7 +502,8 @@ class berewicBond {
     return $txid;
   }
 
-  function createAndSignRedemption($redemption_address, $redeeming_amount, $funding_amount, $redeemer) {
+  function createAndSignRedemption($redemption_address, $redeeming_amount,
+				   $funding_amount, $redeemer) {
     // create a raw transaction
     $pt1 = array(array('txid' => $this->getBondTxid(),
 		       'vout' => intval($this->fundtx->getUTXOVout())));
@@ -527,7 +529,8 @@ class berewicBond {
 		       'redeemScript' => $this->getRedeemScript(),
 		       'amount' => $funding_amount));
     $pt2 = array($user1_privkey);
-    $rv = $this->conn->signrawtransactionwithkey($unsigned_rawtx, $pt2, $pt1);
+    $rv = $this->conn->signrawtransactionwithkey($unsigned_rawtx,
+						 $pt2, $pt1);
     $signed_rawtx = $this->conn->response['result']['hex'];
     $script_sz = substr($signed_rawtx, 86, 2);
     if ($script_sz !== '23') {
@@ -556,4 +559,5 @@ class berewicBond {
     $this->txid = $txid;
   }
 }
+
 ?>
