@@ -22,6 +22,7 @@ define('CONST_TXT_AUTHV1', 'authv1');
 define('CONST_MAX_PUT_UPLOAD_LEN', 320);
 define('CONST_MAX_QUERY_STRING_LEN', 255);
 define('CONST_MIN_BONDING_PERIOD', 1814400);  // 1,814,400 = 3 weeks
+define('CONST_PROPOSALS_PATHANDFILE', '/home/httpd-writes/accepted-proposals');
 
 define('ERR_QUERY_TOO_LONG', 10000);
 define('ERR_QUERY_WRONG_NUMBER_KEYS', 10001);
@@ -254,8 +255,31 @@ function main_put($query_string, $put_upload) {
 			 $network['buyer-address'],
 			 $min_timeout['minblocktime']);
     $p2sh_address = $htlb->getP2SHAddress();
-    echo "+OK $p2sh_address\n";
-    
+    //
+    // make a copy of the accepted parts of the proposal and
+    // p2sh address so we can later redeem the funds
+    $network['p2sh-address'] = $p2sh_address;
+    $prop = array('0' => array('version' => $zero_arr['version'],
+			       'type' => $zero_arr['type'],
+			       'value' => array('currency' => $value['currency'],
+						'value' => $value['value']),
+			       'network' => array('networkname' => $network['networkname'],
+						  'buyer-address' => $network['buyer-address'],
+						  'p2sh-address' => $network['p2sh-address'],
+						  'seller-address' => $network['seller-address']),
+			       'minblocktime' => $min_timeout['minblocktime'])
+		  );
+    $rv = file_put_contents(CONST_PROPOSALS_PATHANDFILE,
+			    json_encode($prop, JSON_FORCE_OBJECT) . "\n",
+			    FILE_APPEND | LOCK_EX);
+    //
+    // Only return okay once we've recorded the proposal
+    if ($rv === false) {
+      echo "+NOK failed to store the proposal at this end\n";
+    } else {
+      echo "+OK $p2sh_address\n";
+    }
+
   } else {
     var_dump($shenanigan);
   }
