@@ -10,6 +10,7 @@ define('BEREWIC_SECRET', 'thisisasecret');
 define('BEREWIC_DIGEST_SECRET', 'thisisapreimage');
 
 define('CONST_ABS_NUM_PARAMS', 3);
+define('CONST_SELLER_ADDRESS', '2Mv7JjZLNrueGqyWcxisBL3jHWKxSpkYbsu');
 define('CONST_LEN_CRC32', 8);
 define('CONST_LEN_RIPEMD160', 40);
 define('CONST_RATE_TXT_ZERO', 'zero');
@@ -21,7 +22,7 @@ define('CONST_TXT_RATEV1', 'ratev1');
 define('CONST_TXT_AUTHV1', 'authv1');
 define('CONST_MAX_PUT_UPLOAD_LEN', 320);
 define('CONST_MAX_QUERY_STRING_LEN', 255);
-define('CONST_MIN_BONDING_PERIOD', 1814400);  // 1,814,400 = 3 weeks
+define('CONST_MIN_BONDING_PERIOD', 180);  // 1,814,400 = 3 weeks
 define('CONST_PROPOSALS_PATHANDFILE', '/home/httpd-writes/accepted-proposals');
 
 define('ERR_QUERY_TOO_LONG', 10000);
@@ -64,7 +65,7 @@ function fakeAResponse($idv1, $ratev1) {
 		 'network' => array('networkname' => 'testnet',
 				    'buyer-address' => '',
 				    'p2sh-address' => '',
-				    'seller-address' => '2MvHsfFpR6FBxs8vNNTKBe46vnhuYtDLpRR'),
+				    'seller-address' => CONST_SELLER_ADDRESS),
 		 'min-timeout' => array('minblocktime' =>
 					time() + CONST_MIN_BONDING_PERIOD));
   $sugg2 = array('version' => '0.1',
@@ -253,7 +254,7 @@ function main_put($query_string, $put_upload) {
     $htlb = new berewicBond($conn);
     $htlb->constructBond($htlb_signing, $network['seller-address'],
 			 $network['buyer-address'],
-			 $min_timeout['minblocktime']);
+			 bc_dechex($min_timeout['minblocktime']));
     $p2sh_address = $htlb->getP2SHAddress();
     //
     // make a copy of the accepted parts of the proposal and
