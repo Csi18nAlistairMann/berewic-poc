@@ -22,7 +22,7 @@ define('CONST_TXT_RATEV1', 'ratev1');
 define('CONST_TXT_AUTHV1', 'authv1');
 define('CONST_MAX_PUT_UPLOAD_LEN', 320);
 define('CONST_MAX_QUERY_STRING_LEN', 255);
-define('CONST_MIN_BONDING_PERIOD', 180);  // 1,814,400 = 3 weeks
+define('CONST_MIN_BONDING_PERIOD', 1 * 60 * 60);  // 1,814,400 = 3 weeks
 define('CONST_PROPOSALS_PATHANDFILE', '/home/httpd-writes/accepted-proposals');
 
 define('ERR_QUERY_TOO_LONG', 10000);

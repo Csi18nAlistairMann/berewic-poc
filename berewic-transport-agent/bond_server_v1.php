@@ -26,6 +26,9 @@ define('CONST_MAX_POST_UPLOAD_LEN', 352);
 define('CONST_MAX_QUERY_STRING_LEN', 255);
 define('CONST_MIN_BONDING_PERIOD', 1814400);  // 1,814,400 = 3 weeks
 define('CONST_PROPOSALS_PATHANDFILE', '/home/httpd-writes/accepted-proposals');
+define('CONST_HEADER_CONFIRMATION', 'berewic-bond-confirmation');
+
+define('LOCAL_BTA_ID', "78f7");
 
 define('ERR_QUERY_TOO_LONG', 10000);
 define('ERR_QUERY_WRONG_NUMBER_KEYS', 10001);
@@ -134,7 +137,16 @@ function main_get($query_string, $request_uri){
       var_dump($shenanigan);
 
     } else {
-      echo "+OK " . $amount_received . "\n";
+      list($usec, $sec) = explode(" ", microtime());
+      $mtime = strval($sec) . substr(strval($usec), 2, -2);
+      $plain = 'idv1=' . $_SERVER['REMOTE_ADDR'];
+      $plain .= '&bta=' . LOCAL_BTA_ID;
+      $plain .= '&amount=' . $amount_received;
+      $plain .= '&locktime=' . $found['0']['minblocktime'];
+      $plain .= '&mtime=' . $mtime;
+      $hash = hash('ripemd160', $plain . BEREWIC_SECRET);
+      $confirmation = '&hash=' . $hash;
+      echo "+OK " . CONST_HEADER_CONFIRMATION . ': ' . $plain . $confirmation . "\n";
     }
   }
 }
