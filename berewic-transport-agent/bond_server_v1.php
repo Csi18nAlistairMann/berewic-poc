@@ -10,6 +10,7 @@ define('BEREWIC_SECRET', 'thisisasecret');
 define('BEREWIC_DIGEST_SECRET', 'thisisapreimage');
 
 define('CONST_ABS_NUM_PARAMS', 3);
+define('CONST_BOND_URI_ROOT', '/bond/');
 define('CONST_LEN_CRC32', 8);
 define('CONST_LEN_RIPEMD160', 40);
 define('CONST_RATE_TXT_ZERO', 'zero');
@@ -19,6 +20,8 @@ define('CONST_RATE_DEFAULT', CONST_RATE_TXT_NORMAL);
 define('CONST_TXT_IDV1', 'idv1');
 define('CONST_TXT_RATEV1', 'ratev1');
 define('CONST_TXT_AUTHV1', 'authv1');
+define('CONST_MAX_LEN_BOND_URI', 45);
+define('CONST_MIN_LEN_BOND_URI', 35);
 define('CONST_MAX_POST_UPLOAD_LEN', 352);
 define('CONST_MAX_QUERY_STRING_LEN', 255);
 define('CONST_MIN_BONDING_PERIOD', 1814400);  // 1,814,400 = 3 weeks
@@ -36,10 +39,68 @@ define('ERR_DATA_TOO_LONG', 10009);
 define('ERR_DATA_NOT_JSON', 10010);
 define('ERR_DATA_MISSING_ZERO_STRUCTURE', 10011);
 define('ERR_DATA_INVALID_VALUE', 10012);
+define('ERR_QUERY_TOO_SHORT', 10013);
+define('ERR_QUERY_MISSING', 10014);
+define('ERR_QUERY_FOUND', 10015);
+define('ERR_BOND_URI_LEN_TOO_LONG', 10016);
+define('ERR_BOND_URI_LEN_TOO_SHORT', 10017);
+define('ERR_BOND_URI_UNEXPECTED', 10018);
+define('ERR_BOND_URI_CORRUPTED', 10019);
 
-function main_get($query_string){
+function main_get($query_string, $request_uri){
   // GET /bond - unimplemented
   // GET /bond/<P2SH address> - GET status of bond specified
+  $shenanigan = array();
+  $amount_received = false;
+  if ($query_string != '') {
+    // Should not be a query string for POST
+    $shenanigan[] = ERR_QUERY_FOUND;
+
+  } else {
+    $request_uri = substr($request_uri, 0, CONST_MAX_LEN_BOND_URI);
+    // GET /bond/<P2SH ADDRESS>
+    if (strlen($request_uri) === CONST_MAX_LEN_BOND_URI) {
+      $shenanigan[] = ERR_BOND_LEN_TOO_LONG;
+
+    } elseif (strlen($request_uri) < CONST_MIN_LEN_BOND_URI) {
+      $shenanigan[] = ERR_BOND_LEN_TOO_SHORT;
+
+    } elseif (substr($request_uri, 0, strlen(CONST_BOND_URI_ROOT)) !== CONST_BOND_URI_ROOT) {
+      $shenanigan[] = ERR_BOND_URI_UNEXPECTED;
+
+    } else {
+      $unsafe_uri = substr($request_uri, strlen(CONST_BOND_URI_ROOT));
+      $ok = true;
+      for ($a = 0; $a < strlen($unsafe_uri); $a++) {
+	if (!((ord($unsafe_uri[$a]) >= 48 && ord($unsafe_uri[$a]) <= 57) ||
+	      (ord($unsafe_uri[$a]) >= 65 && ord($unsafe_uri[$a]) <= 90) ||
+	      (ord($unsafe_uri[$a]) >= 97 && ord($unsafe_uri[$a]) <= 122))) {
+	  $ok = false;
+	}
+      }
+
+      if ($ok === false) {
+	$shenanigan[] = ERR_BOND_URI_CORRUPTED;
+
+      } else {
+	$uri = $unsafe_uri;
+
+	// What's the balance of this transaction? While it's zero it
+	// hasn't arrived.
+	$bitcoin = new Bitcoin(UN, PW, HOST, PORT);
+	$bitcoin->getreceivedbyaddress($uri);
+	$amount_received = strval($bitcoin->response['result']);
+      }
+    }
+  }
+
+  if ($amount_received === false ||
+      $amount_received === "0") {
+    echo "+NOK not arrived yet\n";
+
+  } else {
+    echo "+OK " . $amount_received . "\n";
+  }
 }
 
 function main_post($query_string, $post_upload) {
@@ -118,25 +179,44 @@ function main_post($query_string, $post_upload) {
   if ($found === true) {
     // If the bond was posted okay (so, not run out of funds, no errors etc)
     // the reference for it will be the P2SH address concerned.
-    //echo fakeAResponse($idv1, $ratev1);
+
+    $bitcoin = new Bitcoin(UN, PW, HOST, PORT);
+
+    $htlb_signing = false;
+    $funding_amount = $value['value'];
+    $locktime = $min_timeout['minblocktime'];
+    $locktime_redeemscript = bc_dechex($locktime);
+
+    $seller_address = $network['seller-address'];
+    $buyer_address = $network['buyer-address'];
+
+    $htlb = new berewicBond($bitcoin);
+    $htlb->constructBond($htlb_signing, $network['seller-address'],
+			 $network['buyer-address'],
+			 $locktime_redeemscript);
+    try {
+      $txid = $htlb->postBond($funding_amount);
+    } catch (Exception $e) {
+      var_dump("Caught exception!");
+    }
+    echo "+OK TXID: $txid Consider it POSTed\n";
 
   } else {
     var_dump($shenanigan);
   }
 }
 
-function main($method, $query_string, $post_upload) {
+function main($method, $query_string, $post_upload, $request_uri) {
   if ($method === 'GET') {
-    main_get($query_string);
+    main_get($query_string, $request_uri);
 
   } elseif ($method === 'POST') {
     // A user agent is asking us to post bond
     main_post($query_string, $post_upload);
-    echo "+OK Consider it POSTed\n";
   }
   return;
 }
 
 main($_SERVER['REQUEST_METHOD'], $_SERVER['QUERY_STRING'],
-     trim(file_get_contents("php://input")));
+     trim(file_get_contents("php://input")), $_SERVER['REQUEST_URI']);
 ?>

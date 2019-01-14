@@ -257,6 +257,10 @@ function main_put($query_string, $put_upload) {
 			 bc_dechex($min_timeout['minblocktime']));
     $p2sh_address = $htlb->getP2SHAddress();
     //
+    // Import this into the local wallet as a watch-only address
+    $rv = $conn->importaddress($p2sh_address, 'proposals', false);
+
+    //
     // make a copy of the accepted parts of the proposal and
     // p2sh address so we can later redeem the funds
     $network['p2sh-address'] = $p2sh_address;
