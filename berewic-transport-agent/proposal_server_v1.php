@@ -234,7 +234,8 @@ function main_put($query_string, $put_upload) {
 		    strlen($network['seller-address']) < 30 ||
 		    strlen($network['seller-address']) > 40) {
 	    // plenty of checking that could and should be done
-	    // but this is an experiment
+	    // but this is an experiment. Example: we don't
+	    // even check if the addresses belong to us
 	    $shenanigan[] = ERR_DATA_INVALID_VALUE + 1;
 
 	  } else {

@@ -25,6 +25,7 @@ define('CONST_MIN_LEN_BOND_URI', 35);
 define('CONST_MAX_POST_UPLOAD_LEN', 352);
 define('CONST_MAX_QUERY_STRING_LEN', 255);
 define('CONST_MIN_BONDING_PERIOD', 1814400);  // 1,814,400 = 3 weeks
+define('CONST_PROPOSALS_PATHANDFILE', '/home/httpd-writes/accepted-proposals');
 
 define('ERR_QUERY_TOO_LONG', 10000);
 define('ERR_QUERY_WRONG_NUMBER_KEYS', 10001);
@@ -46,6 +47,7 @@ define('ERR_BOND_URI_LEN_TOO_LONG', 10016);
 define('ERR_BOND_URI_LEN_TOO_SHORT', 10017);
 define('ERR_BOND_URI_UNEXPECTED', 10018);
 define('ERR_BOND_URI_CORRUPTED', 10019);
+define('ERR_BOND_INSUFFICIENT_FUNDS', 10020);
 
 function main_get($query_string, $request_uri){
   // GET /bond - unimplemented
@@ -99,7 +101,41 @@ function main_get($query_string, $request_uri){
     echo "+NOK not arrived yet\n";
 
   } else {
-    echo "+OK " . $amount_received . "\n";
+    // check if the script is good. Maybe we could have done this
+    // a bit earlier. Better to make the user agent hold on to the
+    // details and hash/check those, but for this experiment lets
+    // just draw them in from the file. Start from the end of file
+    // and work earlier.
+    $proposals_whole = file_get_contents(CONST_PROPOSALS_PATHANDFILE);
+    $proposals_split = explode("\n", $proposals_whole);
+    $found = false;
+    while (sizeof($proposals_split) > 0 && $found === false) {
+      $candidate_json = array_pop($proposals_split);
+      $candidate_arr = json_decode($candidate_json, true);
+      if ($candidate_arr['0']['network']['p2sh-address'] === $uri) {
+	$found = $candidate_arr;
+	continue;
+      }
+    }
+    $redeemscript_good = false;
+    if ($found !== false) {
+      // We already know that the bond is properly formed, as we checked
+      // it out before recording it. What we don't know is if amount
+      // sent to the address is sufficient.
+      if (bccomp($found['0']['value']['value'], $amount_received) < 0) {
+	$shenanigan[] = ERR_BOND_INSUFFICIENT_FUNDS;
+
+      } else {
+	$redeemscript_good = true;
+      }
+    }
+
+    if ($redeemscript_good !== true) {
+      var_dump($shenanigan);
+
+    } else {
+      echo "+OK " . $amount_received . "\n";
+    }
   }
 }
 
