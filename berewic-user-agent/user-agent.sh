@@ -7,7 +7,7 @@
 #
 # At this date this script is incomplete.
 #
-# Want to watch an address made earlier? Use this:
+# Want to watch an address made earlier? Use this and comment out sleep 30 below
 # P2SH_ADDRESS="2N1zWYSLBNqgpxAh5XHvkdbpbA1qPCzFL3e"
 P2SH_ADDRESS=""
 if [ "$P2SH_ADDRESS" == "" ]; then
@@ -80,8 +80,20 @@ fi
 RESPONSE11='+NOK not arrived yet'
 until [ "$RESPONSE11" != "+NOK not arrived yet" ]; do
     TIMESTAMP=$(date +%s)
-    echo $TIMESTAMP": "$RESPONSE11
     RESPONSE11=$(wget --method=GET -q -O - --no-check-certificate "https://berewic.mpsvr.com:8443/bond/"$P2SH_ADDRESS)
-    sleep 30
+    if [ "$RESPONSE11" == "+NOK not arrived yet" ]; then
+	echo $TIMESTAMP": "$RESPONSE11
+	sleep 30
+    fi
 done
 echo $TIMESTAMP": "$RESPONSE11
+
+#
+# Strip the "+OK "
+RESPONSE12=$(echo $RESPONSE11 | sed 's/^.*+OK //' | tr -d "\n")
+
+#
+# We can now use the header to prove the bonding status to
+# the satisfaction of the covered resource
+RESPONSE13=$(wget --method=GET -q -O - --header="$RESPONSE12" http://berewic.pectw.net/covered-resource/endpoint-v1.php)
+echo $RESPONSE13
