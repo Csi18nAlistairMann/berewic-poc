@@ -24,6 +24,7 @@ define('CONST_MAX_PUT_UPLOAD_LEN', 320);
 define('CONST_MAX_QUERY_STRING_LEN', 255);
 define('CONST_MIN_BONDING_PERIOD', 1 * 60 * 60);  // 1,814,400 = 3 weeks
 define('CONST_PROPOSALS_PATHANDFILE', '/home/httpd-writes/accepted-proposals');
+define('CONST_SERVER_URLROOT', 'https://berewic.mpsvr.com:8443');
 
 define('ERR_QUERY_TOO_LONG', 10000);
 define('ERR_QUERY_WRONG_NUMBER_KEYS', 10001);
@@ -290,9 +291,12 @@ function main_put($query_string, $put_upload) {
     //
     // Only return okay once we've recorded the proposal
     if ($rv === false) {
-      echo "+NOK failed to store the proposal at this end\n";
+      http_response_code(500);
+      echo "Failed to store the proposal at this end\n";
+
     } else {
-      echo "+OK $p2sh_address\n";
+      http_response_code(201);
+      header('Location: ' . CONST_SERVER_URLROOT . '/bond/' . $p2sh_address);
     }
 
   } else {

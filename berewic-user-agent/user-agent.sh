@@ -47,14 +47,22 @@ if [ "$P2SH_ADDRESS" == "" ]; then
     RESPONSE6=$(echo $RESPONSE5 | sed "s/^\(.*\"testnet\",\"buyer-address\":\"\)\(\",\"p2sh-address\":.*\)$/\1$BUYER_ADDRESS\2/")
 
     #
-    # Supply completed proposal back to Bob's BTA, expect +OK <p2sh-address>
+    # Supply completed proposal back to Bob's BTA, expect "201"
     # The BTA server will make a record of the proposal at this point, even
     # if Alice ultimately doesn't post bond
-    RESPONSE7=$(wget --method=PUT --header=Content-Type:application/json --body-data=$RESPONSE6 -q -O - --no-check-certificate "$RESPONSE3")
+    RESPONSE7A=$(wget -S --method=PUT --header=Content-Type:application/json --body-data=$RESPONSE6 -q -O - --no-check-certificate "$RESPONSE3" 2>&1)
+    RESPONSE7B=$(echo $RESPONSE7A | sed "s/^HTTP\/1.1 //" | sed "s/^\(...\).*/\1/")
+    if [ "$RESPONSE7B" != "201" ]; then
+	echo "Didn't get 201 response when PUTting the proposal back\n"
+	echo $RESPONSE7A
+	echo $RESPONSE7B
+	exit
+    fi
+    RESPONSE7C=$(echo $RESPONSE7A | sed "s/^.*Location: //" | sed "s/^\(\S*\)\s.*/\1/")
 
     #
     # Extract P2SH Address
-    P2SH_ADDRESS=$(echo $RESPONSE7 | sed 's/^.*+OK //' | tr -d "\n")
+    P2SH_ADDRESS=$(echo $RESPONSE7C | sed "s/^.*\/\(.*\)/\1/")
     echo "P2SH Address: "$P2SH_ADDRESS
 
     #
@@ -63,9 +71,17 @@ if [ "$P2SH_ADDRESS" == "" ]; then
 
     #
     # Connect to Alice's BTA and instruct it to post bond. This
-    # part will end up credentialled up the wazoo. Expect +OK
-    RESPONSE10=$(wget --method=POST --header=Content-Type:application/json --body-data=$RESPONSE9 -q -O - --no-check-certificate "https://berewic.mpsvr.com:8443/bond")
-    echo $RESPONSE10
+    # part will end up credentialled up the wazoo. Expect "201"
+    RESPONSE10A=$(wget -S --method=POST --header=Content-Type:application/json --body-data=$RESPONSE9 -q -O - --no-check-certificate "https://berewic.mpsvr.com:8443/bond" 2>&1)
+    RESPONSE10B=$(echo $RESPONSE10A | sed "s/^HTTP\/1.1 //" | sed "s/^\(...\).*/\1/")
+    if [ "$RESPONSE7B" != "201" ]; then
+	echo "Didn't get 201 response when POSTting the bond\n"
+	echo $RESPONSE10A
+	echo $RESPONSE10B
+	exit
+    fi
+    # Resource = /bond/txid
+    RESPONSE10C=$(echo $RESPONSE10A | sed "s/^.*\(Location: \S*\)\s.*/\1/")
 fi
 #
 # Alice's BTA has posted bond to the blockchain, we now want to
@@ -77,23 +93,28 @@ fi
 # HTTP2 allows us to be told when its arrived but for now we'll
 # just poll for it
 #
-RESPONSE11='+NOK not arrived yet'
-until [ "$RESPONSE11" != "+NOK not arrived yet" ]; do
+RESPONSE11B='202'
+until [ "$RESPONSE11B" != "202" ]; do
     TIMESTAMP=$(date +%s)
-    RESPONSE11=$(wget --method=GET -q -O - --no-check-certificate "https://berewic.mpsvr.com:8443/bond/"$P2SH_ADDRESS)
-    if [ "$RESPONSE11" == "+NOK not arrived yet" ]; then
-	echo $TIMESTAMP": "$RESPONSE11
+    RESPONSE11A=$(wget -S --method=GET -q -O - --no-check-certificate "https://berewic.mpsvr.com:8443/bond/"$P2SH_ADDRESS 2>&1)
+    RESPONSE11B=$(echo $RESPONSE11A | sed "s/^HTTP\/1.1 //" | sed "s/^\(...\).*/\1/")
+    if [ "$RESPONSE11B" == "202" ]; then
+	echo $TIMESTAMP": "$RESPONSE11B
 	sleep 30
     fi
 done
-echo $TIMESTAMP": "$RESPONSE11
+echo $TIMESTAMP": "$RESPONSE11B
 
 #
-# Strip the "+OK "
-RESPONSE12=$(echo $RESPONSE11 | sed 's/^.*+OK //' | tr -d "\n")
+# Strip out the header we need
+# RESPONSE12=$(echo $RESPONSE11 | sed 's/^.*+OK //' | tr -d "\n")
+RESPONSE12=$(echo $RESPONSE11A | sed "s/^.*\(berewic-bond-confirmation: \S*\).*/\1/")
+echo "Header which confirms bond acceptable will be:"
+echo $RESPONSE12
 
 #
 # We can now use the header to prove the bonding status to
 # the satisfaction of the covered resource
 RESPONSE13=$(wget --method=GET -q -O - --header="$RESPONSE12" http://berewic.pectw.net/covered-resource/endpoint-v1.php)
+echo "Server response to the above header:"
 echo $RESPONSE13

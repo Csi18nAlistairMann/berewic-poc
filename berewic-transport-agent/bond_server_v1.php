@@ -11,22 +11,23 @@ define('BEREWIC_DIGEST_SECRET', 'thisisapreimage');
 
 define('CONST_ABS_NUM_PARAMS', 3);
 define('CONST_BOND_URI_ROOT', '/bond/');
+define('CONST_HEADER_CONFIRMATION', 'berewic-bond-confirmation');
 define('CONST_LEN_CRC32', 8);
 define('CONST_LEN_RIPEMD160', 40);
-define('CONST_RATE_TXT_ZERO', 'zero');
-define('CONST_RATE_TXT_LOW', 'low');
-define('CONST_RATE_TXT_NORMAL', 'normal');
-define('CONST_RATE_DEFAULT', CONST_RATE_TXT_NORMAL);
-define('CONST_TXT_IDV1', 'idv1');
-define('CONST_TXT_RATEV1', 'ratev1');
-define('CONST_TXT_AUTHV1', 'authv1');
 define('CONST_MAX_LEN_BOND_URI', 45);
 define('CONST_MIN_LEN_BOND_URI', 35);
 define('CONST_MAX_POST_UPLOAD_LEN', 352);
 define('CONST_MAX_QUERY_STRING_LEN', 255);
 define('CONST_MIN_BONDING_PERIOD', 1814400);  // 1,814,400 = 3 weeks
 define('CONST_PROPOSALS_PATHANDFILE', '/home/httpd-writes/accepted-proposals');
-define('CONST_HEADER_CONFIRMATION', 'berewic-bond-confirmation');
+define('CONST_RATE_TXT_ZERO', 'zero');
+define('CONST_RATE_TXT_LOW', 'low');
+define('CONST_RATE_TXT_NORMAL', 'normal');
+define('CONST_RATE_DEFAULT', CONST_RATE_TXT_NORMAL);
+define('CONST_SERVER_URLROOT', 'https://berewic.mpsvr.com:8443');
+define('CONST_TXT_AUTHV1', 'authv1');
+define('CONST_TXT_IDV1', 'idv1');
+define('CONST_TXT_RATEV1', 'ratev1');
 
 define('LOCAL_BTA_ID', "78f7");
 
@@ -101,7 +102,10 @@ function main_get($query_string, $request_uri){
 
   if ($amount_received === false ||
       $amount_received === "0") {
-    echo "+NOK not arrived yet\n";
+    // Note: we assume we've heard of this bond. If we had not,
+    // we would 404 it instead.
+    http_response_code(202);
+    header('Retry-After: 30');
 
   } else {
     // check if the script is good. Maybe we could have done this
@@ -247,7 +251,8 @@ function main_post($query_string, $post_upload) {
     } catch (Exception $e) {
       var_dump("Caught exception!");
     }
-    echo "+OK TXID: $txid Consider it POSTed\n";
+    http_response_code(201);
+    header('Location: ' . CONST_SERVER_URLROOT . '/bond/' . $txid);
 
   } else {
     var_dump($shenanigan);
