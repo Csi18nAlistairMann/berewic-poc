@@ -59,6 +59,7 @@ function fakeAResponse($idv1, $ratev1) {
     }
   }
   $sugg1 = array('version' => '0.1',
+		 'idv1' => $idv1,
 		 'type' => 'bond',
 		 'value' => array('currency' => 'btc',
 				  'value' => $value),
@@ -69,6 +70,7 @@ function fakeAResponse($idv1, $ratev1) {
 		 'min-timeout' => array('minblocktime' =>
 					time() + CONST_MIN_BONDING_PERIOD));
   $sugg2 = array('version' => '0.1',
+		 'idv1' => $idv1,
 		 'type' => 'payment',
 		 'value' => array('currency' => 'Send me a postcard',
 				  'value' => '1.0'),
@@ -197,6 +199,7 @@ function main_put($query_string, $put_upload) {
 	// not breaking errors down more for an experiment
 	$zero_arr = $data['0'];
 	if (!isset($zero_arr['version']) ||
+	    !isset($zero_arr['idv1']) ||
 	    !isset($zero_arr['type']) ||
 	    !isset($zero_arr['value']) ||
 	    !isset($zero_arr['network']) ||
@@ -217,6 +220,7 @@ function main_put($query_string, $put_upload) {
 	    $shenanigan[] = ERR_DATA_MISSING_DATA;
 
 	  } elseif ($zero_arr['version'] !== '0.1' ||
+		    // $zero_arr['idv1'] !== $idv1 ||  // identity check
 		    $zero_arr['type'] !== 'bond' ||
 		    $value['currency'] !== 'btc' ||
 		    $value['value'] !== '0.0004' ||
@@ -236,7 +240,7 @@ function main_put($query_string, $put_upload) {
 	    // plenty of checking that could and should be done
 	    // but this is an experiment. Example: we don't
 	    // even check if the addresses belong to us
-	    $shenanigan[] = ERR_DATA_INVALID_VALUE + 1;
+	    $shenanigan[] = ERR_DATA_INVALID_VALUE;
 
 	  } else {
 	    $found = true;
@@ -266,6 +270,7 @@ function main_put($query_string, $put_upload) {
     // p2sh address so we can later redeem the funds
     $network['p2sh-address'] = $p2sh_address;
     $prop = array('0' => array('version' => $zero_arr['version'],
+			       'idv1' => $zero_arr['idv1'],
 			       'type' => $zero_arr['type'],
 			       'value' => array('currency' => $value['currency'],
 						'value' => $value['value']),
@@ -275,8 +280,12 @@ function main_put($query_string, $put_upload) {
 						  'seller-address' => $network['seller-address']),
 			       'minblocktime' => $min_timeout['minblocktime'])
 		  );
+    $json_prop = json_encode($prop, JSON_FORCE_OBJECT);
+    $json_hash = hash('ripemd160', $json_prop);
+    $prop['0']['hash'] = $json_hash;
+    $json_prop = json_encode($prop, JSON_FORCE_OBJECT);
     $rv = file_put_contents(CONST_PROPOSALS_PATHANDFILE,
-			    json_encode($prop, JSON_FORCE_OBJECT) . "\n",
+			    $json_prop . "\n",
 			    FILE_APPEND | LOCK_EX);
     //
     // Only return okay once we've recorded the proposal

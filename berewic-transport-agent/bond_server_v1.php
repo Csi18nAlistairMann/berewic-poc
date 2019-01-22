@@ -139,7 +139,7 @@ function main_get($query_string, $request_uri){
     } else {
       list($usec, $sec) = explode(" ", microtime());
       $mtime = strval($sec) . substr(strval($usec), 2, -2);
-      $plain = 'idv1=' . $_SERVER['REMOTE_ADDR'];
+      $plain = 'idv1=' . $found['0']['idv1'];
       $plain .= '&bta=' . LOCAL_BTA_ID;
       $plain .= '&amount=' . $amount_received;
       $plain .= '&locktime=' . $found['0']['minblocktime'];
