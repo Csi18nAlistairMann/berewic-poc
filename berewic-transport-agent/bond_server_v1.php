@@ -248,11 +248,13 @@ function main_post($query_string, $post_upload) {
 			 $locktime_redeemscript);
     try {
       $txid = $htlb->postBond($funding_amount);
+      http_response_code(201);
+      header('Location: ' . CONST_SERVER_URLROOT . '/bond/' . $txid);
+
     } catch (Exception $e) {
-      var_dump("Caught exception!");
+      // Most likely user has run out of funds
+      http_response_code(402);
     }
-    http_response_code(201);
-    header('Location: ' . CONST_SERVER_URLROOT . '/bond/' . $txid);
 
   } else {
     var_dump($shenanigan);

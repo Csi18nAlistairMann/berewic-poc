@@ -10,6 +10,13 @@
 # Want to watch an address made earlier? Use this and comment out sleep 30 below
 # P2SH_ADDRESS="2N1zWYSLBNqgpxAh5XHvkdbpbA1qPCzFL3e"
 P2SH_ADDRESS=""
+#
+# Set up somewhere to save confirmations
+CONFIRMATIONS_DIR="$HOME/berewic-confirmations"
+if [ ! -d "$CONFIRMATIONS_DIR" ]; then
+    mkdir -p $CONFIRMATIONS_DIR
+fi
+
 if [ "$P2SH_ADDRESS" == "" ]; then
     # BUYER_ADDRESS aka Alice's redemption address
     # This is the address to which some or all of your bond is returned.
@@ -74,7 +81,7 @@ if [ "$P2SH_ADDRESS" == "" ]; then
     # part will end up credentialled up the wazoo. Expect "201"
     RESPONSE10A=$(wget -S --method=POST --header=Content-Type:application/json --body-data=$RESPONSE9 -q -O - --no-check-certificate "https://berewic.mpsvr.com:8443/bond" 2>&1)
     RESPONSE10B=$(echo $RESPONSE10A | sed "s/^HTTP\/1.1 //" | sed "s/^\(...\).*/\1/")
-    if [ "$RESPONSE7B" != "201" ]; then
+    if [ "$RESPONSE10B" != "201" ]; then
 	echo "Didn't get 201 response when POSTting the bond\n"
 	echo $RESPONSE10A
 	echo $RESPONSE10B
@@ -111,6 +118,10 @@ echo $TIMESTAMP": "$RESPONSE11B
 RESPONSE12=$(echo $RESPONSE11A | sed "s/^.*\(berewic-bond-confirmation: \S*\).*/\1/")
 echo "Header which confirms bond acceptable will be:"
 echo $RESPONSE12
+
+#
+# Save the header provided back
+echo $RESPONSE12 >>$CONFIRMATIONS_DIR/confirmations
 
 #
 # We can now use the header to prove the bonding status to
