@@ -14,4 +14,9 @@ A Bash script simulating a BUA
 post-bond.php, a PHP file to handle some aspects
 
 ## /berewic-bitcoin/berewic-bitcoin.php
-A PHP library containing classes useful for simulating berewic back end functionality
+A PHP library containing classes useful for simulating berewic back end functionality. 
+
+Also helpers :
+/berewic-bitcoin/berewic-defines.php
+/berewic-bitcoin/base58.php
+/berewic-bitcoin/easybitcoin.php (MIT Licence)
