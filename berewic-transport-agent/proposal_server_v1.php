@@ -19,7 +19,7 @@ define('CONST_RATE_TXT_NORMAL', 'normal');
 define('CONST_RATE_DEFAULT', CONST_RATE_TXT_NORMAL);
 define('CONST_TXT_IDV1', 'idv1');
 define('CONST_TXT_RATEV1', 'ratev1');
-define('CONST_TXT_AUTHV1', 'authv1');
+define('CONST_TXT_HMACV1', 'hmacv1');
 define('CONST_MAX_PUT_UPLOAD_LEN', 320);
 define('CONST_MAX_QUERY_STRING_LEN', 255);
 define('CONST_MIN_BONDING_PERIOD', 1 * 60 * 60);  // 1,814,400 = 3 weeks
@@ -84,8 +84,8 @@ function fakeAResponse($idv1, $ratev1) {
 		    $sugg2
 		    );
   $json = json_encode($response);
-  $hash = hash('ripemd160', $json . BEREWIC_SECRET);
-  $response['hash'] = $hash;
+  $hmacv1 = hash_hmac('ripemd160', $json, BEREWIC_SECRET);
+  $response['hmacv1'] = $hmacv1;
   return json_encode($response);
 }
 
@@ -103,7 +103,7 @@ function main_get($query_string){
     } else {
       $idv1 = false;
       $ratev1 = false;
-      $authv1 = false;
+      $hmacv1 = false;
       foreach($parameters as $pair) {
 	$parameter = explode('=', $pair);
 	if (sizeof($parameter) != 2) {
@@ -134,12 +134,12 @@ function main_get($query_string){
 	      break;
 	    }
 	    break;
-	  case CONST_TXT_AUTHV1:
+	  case CONST_TXT_HMACV1:
 	    if (strlen($value) !== CONST_LEN_RIPEMD160) {
 	      $shenanigan[] = ERR_QUERY_BAD_RIPEMD160;
 	      // 400 bad request
 	    } else {
-	      $authv1 = $value;
+	      $hmacv1 = $value;
 	    }
 	    break;
 	  default:
@@ -152,11 +152,11 @@ function main_get($query_string){
     }
   }
   $found = false;
-  if ($idv1 === false || $ratev1 === false || $authv1 === false) {
+  if ($idv1 === false || $ratev1 === false || $hmacv1 === false) {
     $shenanigan[] = ERR_QUERY_INCOMPLETE;
     // 400 bad request
   } else {
-    if ($authv1 !== hash('ripemd160', $idv1 . $ratev1 . BEREWIC_SECRET)) {
+    if ($hmacv1 !== hash_hmac('ripemd160', $idv1 . $ratev1, BEREWIC_SECRET)) {
       $shenanigan[] = ERR_QUERY_AUTH_FAILURE;
       // 400 bad request
     } else {
@@ -282,8 +282,8 @@ function main_put($query_string, $put_upload) {
 			       'minblocktime' => $min_timeout['minblocktime'])
 		  );
     $json_prop = json_encode($prop, JSON_FORCE_OBJECT);
-    $json_hash = hash('ripemd160', $json_prop);
-    $prop['0']['hash'] = $json_hash;
+    $hmacv1 = hash_hmac('ripemd160', $json_prop, BEREWIC_SECRET);
+    $prop['0']['hmacv1'] = $hmacv1;
     $json_prop = json_encode($prop, JSON_FORCE_OBJECT);
     $rv = file_put_contents(CONST_PROPOSALS_PATHANDFILE,
 			    $json_prop . "\n",

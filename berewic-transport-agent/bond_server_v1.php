@@ -25,7 +25,7 @@ define('CONST_RATE_TXT_LOW', 'low');
 define('CONST_RATE_TXT_NORMAL', 'normal');
 define('CONST_RATE_DEFAULT', CONST_RATE_TXT_NORMAL);
 define('CONST_SERVER_URLROOT', 'https://berewic.mpsvr.com:8443');
-define('CONST_TXT_AUTHV1', 'authv1');
+define('CONST_TXT_HMACV1', 'hmacv1');
 define('CONST_TXT_IDV1', 'idv1');
 define('CONST_TXT_RATEV1', 'ratev1');
 
@@ -148,8 +148,8 @@ function main_get($query_string, $request_uri){
       $plain .= '&amount=' . $amount_received;
       $plain .= '&locktime=' . $found['0']['minblocktime'];
       $plain .= '&mtime=' . $mtime;
-      $hash = hash('ripemd160', $plain . BEREWIC_SECRET);
-      $confirmation = '&hash=' . $hash;
+      $hmacv1 = hash_hmac('ripemd160', $plain, BEREWIC_SECRET);
+      $confirmation = '&hmacv1=' . $hmacv1;
       echo "+OK " . CONST_HEADER_CONFIRMATION . ': ' . $plain . $confirmation . "\n";
     }
   }
