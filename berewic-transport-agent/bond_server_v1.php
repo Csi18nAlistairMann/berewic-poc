@@ -24,7 +24,7 @@ define('CONST_RATE_TXT_ZERO', 'zero');
 define('CONST_RATE_TXT_LOW', 'low');
 define('CONST_RATE_TXT_NORMAL', 'normal');
 define('CONST_RATE_DEFAULT', CONST_RATE_TXT_NORMAL);
-define('CONST_SERVER_URLROOT', 'https://berewic.mpsvr.com:8443');
+define('CONST_ALICES_SERVER_URLROOT', 'https://alices-bta.mpsvr.com:8443');
 define('CONST_TXT_HMACV1', 'hmacv1');
 define('CONST_TXT_IDV1', 'idv1');
 define('CONST_TXT_RATEV1', 'ratev1');

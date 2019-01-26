@@ -79,7 +79,7 @@ if [ "$P2SH_ADDRESS" == "" ]; then
     #
     # Connect to Alice's BTA and instruct it to post bond. This
     # part will end up credentialled up the wazoo. Expect "201"
-    RESPONSE10A=$(wget -S --method=POST --header=Content-Type:application/json --body-data=$RESPONSE9 -q -O - --no-check-certificate "https://berewic.mpsvr.com:8443/bond" 2>&1)
+    RESPONSE10A=$(wget -S --method=POST --header=Content-Type:application/json --body-data=$RESPONSE9 -q -O - --no-check-certificate "https://alices-bta.mpsvr.com:8443/bond" 2>&1)
     RESPONSE10B=$(echo $RESPONSE10A | sed "s/^HTTP\/1.1 //" | sed "s/^\(...\).*/\1/")
     if [ "$RESPONSE10B" != "201" ]; then
 	echo "Didn't get 201 response when POSTting the bond\n"
@@ -103,7 +103,7 @@ fi
 RESPONSE11B='202'
 until [ "$RESPONSE11B" != "202" ]; do
     TIMESTAMP=$(date +%s)
-    RESPONSE11A=$(wget -S --method=GET -q -O - --no-check-certificate "https://berewic.mpsvr.com:8443/bond/"$P2SH_ADDRESS 2>&1)
+    RESPONSE11A=$(wget -S --method=GET -q -O - --no-check-certificate "https://bobs-bta.mpsvr.com:8443/bond/"$P2SH_ADDRESS 2>&1)
     RESPONSE11B=$(echo $RESPONSE11A | sed "s/^HTTP\/1.1 //" | sed "s/^\(...\).*/\1/")
     if [ "$RESPONSE11B" == "202" ]; then
 	echo $TIMESTAMP": "$RESPONSE11B

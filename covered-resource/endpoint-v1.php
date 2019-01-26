@@ -14,7 +14,7 @@ error_reporting(E_ALL);
 
 // fakes! don't use
 define('BEREWIC_BTA_1', 'https://z4r56iqh3gnhj67bn.onion:8443/proposal/35cb904aced147bd1230965501af4306ac5204db/64be35a9db5e5f09f40a058b9f27c5ed112ea49c');
-define('BEREWIC_BTA_2', 'https://berewic.mpsvr.com:8443/proposal/4025061200627151c0c2b7b80d7af47b3b5c8bd2/e8ebaa9cb957844658dd0bcea2aeae6ffb1e2349');
+define('BEREWIC_BTA_2', 'https://bobs-bta.mpsvr.com:8443/proposal/4025061200627151c0c2b7b80d7af47b3b5c8bd2/e8ebaa9cb957844658dd0bcea2aeae6ffb1e2349');
 define('BEREWIC_SECRET', 'thisisasecret');
 
 define('CONST_HEADER_BEREWIC_BONDED', 'berewic-bonded');
