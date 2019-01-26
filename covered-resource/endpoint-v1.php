@@ -378,7 +378,7 @@ class OutHeaders extends BerewicHeaders {
 // Subroutines
 
 function main($headers) {
-	echo '<html><head></head><body>';
+	echo '<html><head><title>Bob\'s website</title></head><body>';
 	echo '<font size=+2>Berewic demo page</font><br>';
 
 	$inHeaders = new InHeaders($headers);
