@@ -18,7 +18,7 @@ define('CONST_MAX_LEN_BOND_URI', 45);
 define('CONST_MIN_LEN_BOND_URI', 35);
 define('CONST_MAX_POST_UPLOAD_LEN', 352);
 define('CONST_MAX_QUERY_STRING_LEN', 255);
-define('CONST_MIN_BONDING_PERIOD', 1814400);  // 1,814,400 = 3 weeks
+define('CONST_MIN_BONDING_PERIOD', 1 * 60 * 60);  // 1,814,400 = 3 weeks
 define('CONST_PROPOSALS_PATHANDFILE', '/home/httpd-writes/accepted-proposals');
 define('CONST_RATE_TXT_ZERO', 'zero');
 define('CONST_RATE_TXT_LOW', 'low');
@@ -150,7 +150,7 @@ function main_get($query_string, $request_uri){
       $plain .= '&mtime=' . $mtime;
       $hmacv1 = hash_hmac('ripemd160', $plain, BEREWIC_SECRET);
       $confirmation = '&hmacv1=' . $hmacv1;
-      echo "+OK " . CONST_HEADER_CONFIRMATION . ': ' . $plain . $confirmation . "\n";
+      echo CONST_HEADER_CONFIRMATION . ': ' . $plain . $confirmation . "\n";
     }
   }
 }

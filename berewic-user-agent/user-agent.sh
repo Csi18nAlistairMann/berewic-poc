@@ -31,7 +31,7 @@ if [ "$P2SH_ADDRESS" == "" ]; then
 
     #
     # Obtain the headers when accessing the covered resource without bonding first
-    RESPONSE1=$(wget --method=GET -S http://berewic.pectw.net/covered-resource/endpoint-v1.php -O /dev/null 2>&1)
+    RESPONSE1=$(wget --method=GET -S http://berewic.com/covered-resource -O /dev/null 2>&1)
 
     #
     # Extract just the one header
@@ -126,6 +126,6 @@ echo $RESPONSE12 >>$CONFIRMATIONS_DIR/confirmations
 #
 # We can now use the header to prove the bonding status to
 # the satisfaction of the covered resource
-RESPONSE13=$(wget --method=GET -q -O - --header="$RESPONSE12" http://berewic.pectw.net/covered-resource/endpoint-v1.php)
+RESPONSE13=$(wget --method=GET -q -O - --header="$RESPONSE12" http://berewic.com/covered-resource)
 echo "Server response to the above header:"
 echo $RESPONSE13
