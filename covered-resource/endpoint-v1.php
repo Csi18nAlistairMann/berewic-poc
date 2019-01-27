@@ -337,6 +337,10 @@ class InHeaders extends BerewicHeaders {
 	function getForcedRate() {
 		return $this->forced_rate;
 	}
+
+	function getLocktime() {
+		return $this->confirmation_locktime;
+	}
 }
 
 class OutHeaders extends BerewicHeaders {
@@ -407,10 +411,20 @@ function main($headers) {
 		echo '"Anticipation"';
 
 	} else {
-		header(CONST_HEADER_BEREWIC_BONDED . ": true");
-		echo "Congratulations! This connection is bonded<br>\n";
-		echo "<img src='/covered-resource/bonded-hula.png'><br>";
-		echo '"Success"';
+		$timenow = time();
+		if ($timenow >= $inHeaders->getLocktime() - 1 * 60 * 30 &&
+			$timenow < $inHeaders->getLocktime()) {
+			header(CONST_HEADER_BEREWIC_BONDED . ": false");
+			echo "Service has ended, bond is still subject to review<br>\n";
+			echo "<img src='/covered-resource/unbonded-im-not-dead-yet.jpg'><br>";
+			echo '"Grace period"';
+
+		} else {
+			header(CONST_HEADER_BEREWIC_BONDED . ": true");
+			echo "Congratulations! This connection is bonded<br>\n";
+			echo "<img src='/covered-resource/bonded-hula.png'><br>";
+			echo '"Success"';
+		}
 	}
 
 	echo '</body></html>';

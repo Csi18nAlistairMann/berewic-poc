@@ -22,7 +22,7 @@ define('CONST_TXT_RATEV1', 'ratev1');
 define('CONST_TXT_HMACV1', 'hmacv1');
 define('CONST_MAX_PUT_UPLOAD_LEN', 320);
 define('CONST_MAX_QUERY_STRING_LEN', 255);
-define('CONST_MIN_BONDING_PERIOD', 1 * 60 * 60);  // 1,814,400 = 3 weeks
+define('CONST_MIN_BONDING_PERIOD', 1 * 90 * 60);  // 1,814,400 = 3 weeks
 define('CONST_PROPOSALS_PATHANDFILE', '/home/httpd-writes/accepted-proposals');
 define('CONST_BOBS_SERVER_URLROOT', 'https://bobs-bta.mpsvr.com:8443');
 
