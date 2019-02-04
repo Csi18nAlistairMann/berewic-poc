@@ -11,21 +11,21 @@ Also helpers:
 /berewic-bitcoin/easybitcoin.php (MIT Licence)  
 
 ## /berewic-transport-agent
-PHP files simulating a BTA
+PHP files simulating a BTA.
 
 ### /berewic-transport-agent/bond_server_v1.php
 Simulate /bond.  
-GET /bond/N at Bob's BTA obtains the status (+ confirmation code) due for P2SH address matching N  
-POST /bond at Alice's BTA takes a proposal and commits funds to it  
+GET /bond/N at Bob's BTA obtains the status (+ confirmation code) due for P2SH address matching N.  
+POST /bond at Alice's BTA takes a proposal and commits funds to it.  
 
 ### /berewic-transport-agent/proposal_server_v1.php
 Simulate /proposal  
-GET /proposal/[HOST]/[URI]?idv1=[A]&ratev1=[B]&hmacv1=[C] at Bob's BTA obtains proposals for that user A at host HOST etc  
-PUT /proposal/[HOST]/[URI]?idv1=[A]&ratev1=[B]&hmacv1=[C] at Bob's BTA accepts the uploaded proposal and asks for the P2SH address  
+GET /proposal/[HOST]/[URI]?idv1=[A]&ratev1=[B]&hmacv1=[C] at Bob's BTA obtains proposals for that user A at host HOST etc.
+PUT /proposal/[HOST]/[URI]?idv1=[A]&ratev1=[B]&hmacv1=[C] at Bob's BTA accepts the uploaded proposal and asks for the P2SH address.  
 
 ## /berewic-user-agent/user-agent.sh
-A Bash script simulating a BUA from initial connection to obtaining the confirmation code
-Typical run:
+A Bash script simulating a BUA from initial connection to obtaining the confirmation code.  
+Typical run:  
 <pre>$ ./user-agent.sh
 Accessing URL to obtain a BTA. [Done]
 BTA chosen: https://bobs-bta.mpsvr.com:8443/proposal/4025061200627151c0c2b7b80d7af47b3b5c8bd2/e8ebaa9cb957844658dd0bcea2aeae6ffb1e2349?idv1=52676381&ratev1=normal&hmacv1=80569a4a03a9f4c5df677165e2d94de360cb6da8
@@ -48,4 +48,4 @@ $
 </pre>
 
 ## /covered-resource/endpoint-v1.php
-A PHP file that can return different content based on the bonding status of incoming connections
+A PHP file that can return different content based on the bonding status of incoming connections.  
