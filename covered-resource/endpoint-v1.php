@@ -411,7 +411,8 @@ function main($headers) {
 
 		echo "No bonding headers seen<br>\n";
 		echo "<img src='/covered-resource/unbonded-anticipation.png'><br>";
-		echo '"Anticipation"';
+		echo '"Anticipation"<br><br>';
+		echo '<a href="https://github.com/Csi18nAlistairMann/berewic-poc/blob/master/berewic-user-agent/user-agent.sh">user agent shell script</a>';
 
 	} else {
 		$timenow = time();
