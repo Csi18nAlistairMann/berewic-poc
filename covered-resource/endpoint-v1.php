@@ -25,7 +25,7 @@ define('CONST_HEADER_KEY_MAX_SZ', 32);
 define('CONST_HEADER_VALUE_MAX_SZ', 255);
 define('CONST_HEADER_TXT_VERSION', CONST_HEADER_KEY_MARKER . 'version');
 define('CONST_HEADER_TXT_ROLE', CONST_HEADER_KEY_MARKER . 'role');
-define('CONST_REDIRECT_HEADER', CONST_HEADER_KEY_MARKER . 'bond-transport-agent');
+define('CONST_REDIRECT_HEADER', CONST_HEADER_KEY_MARKER . 'transport-agent');
 define('CONST_NO_VERSION', '0.0');
 define('CONST_ROLE_TXT_CLIENT', 'client');
 define('CONST_ROLE_TXT_SERVER', 'server');

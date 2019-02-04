@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # This bash script is so written as to simulate a device wishing to
-# access a berewic covered-resource, discovering that bonding is
+# access a berewic covered resource, discovering that bonding is
 # required, and instructing the user's own berewic transport agent
 # to fulfill it.
 #
@@ -31,33 +31,41 @@ if [ "$P2SH_ADDRESS" == "" ]; then
 
     #
     # Obtain the headers when accessing the covered resource without bonding first
+    echo -n "Accessing URL to obtain a BTA. "
     RESPONSE1=$(wget --method=GET -S http://berewic.com/covered-resource -O /dev/null 2>&1)
+    echo "[Done]"
 
     #
     # Extract just the one header
-    RESPONSE2=$(echo $RESPONSE1 | sed 's/^.*\(berewic-bond-transport-agent: 10,\)/\1/' | sed 's/ berewic-bond-transport-agent: 20,.*//')
+    RESPONSE2=$(echo $RESPONSE1 | sed 's/^.*\(berewic-transport-agent: 10,\)/\1/' | sed 's/ berewic-transport-agent: 20,.*//')
 
     #
     # Extract just the value (could have been folded into the above but I'm after clarity
-    RESPONSE3=$(echo $RESPONSE2 | sed 's/berewic-bond-transport-agent: 10,//')
+    BOBS_BTA=$(echo $RESPONSE2 | sed 's/berewic-transport-agent: 10,//')
+    echo "BTA chosen: "$BOBS_BTA
 
     #
-    # Connect to Bob's BTA and obtain his proposal for the bond
-    RESPONSE4=$(wget -q -O - --no-check-certificate "$RESPONSE3")
+    # Connect to Bob's BTA and obtain his proposals for a bond
+    echo -n "Get proposals from BTA. "
+    PROPOSALS=$(wget -q -O - --no-check-certificate "$BOBS_BTA")
+    echo "[Done]"
 
     #
     # Extract the btc/testnet proposal and reform as proper json (the surrounding { })
-    RESPONSE5={$(echo $RESPONSE4 | sed 's/^.*\("0":{\)/\1/' | sed 's/,"1":.*//')}
+    echo -n "Add buyer address "$BUYER_ADDRESS" to proposal. "
+    PROPOSAL1OF3={$(echo $PROPOSALS | sed 's/^.*\("0":{\)/\1/' | sed 's/,"1":.*//')}
 
     #
     # Add Alice's address
-    RESPONSE6=$(echo $RESPONSE5 | sed "s/^\(.*\"testnet\",\"buyer-address\":\"\)\(\",\"p2sh-address\":.*\)$/\1$BUYER_ADDRESS\2/")
+    PROPOSAL2OF3=$(echo $PROPOSAL1OF3 | sed "s/^\(.*\"testnet\",\"buyer-address\":\"\)\(\",\"p2sh-address\":.*\)$/\1$BUYER_ADDRESS\2/")
+    echo "[Done]"
 
     #
     # Supply completed proposal back to Bob's BTA, expect "201"
     # The BTA server will make a record of the proposal at this point, even
     # if Alice ultimately doesn't post bond
-    RESPONSE7A=$(wget -S --method=PUT --header=Content-Type:application/json --body-data=$RESPONSE6 -q -O - --no-check-certificate "$RESPONSE3" 2>&1)
+    echo -n "Supply above modification back to to BTA for the P2SH address. "
+    RESPONSE7A=$(wget -S --method=PUT --header=Content-Type:application/json --body-data=$PROPOSAL2OF3 -q -O - --no-check-certificate "$BOBS_BTA" 2>&1)
     RESPONSE7B=$(echo $RESPONSE7A | sed "s/^HTTP\/1.1 //" | sed "s/^\(...\).*/\1/")
     if [ "$RESPONSE7B" != "201" ]; then
 	echo "Didn't get 201 response when PUTting the proposal back\n"
@@ -66,6 +74,7 @@ if [ "$P2SH_ADDRESS" == "" ]; then
 	exit
     fi
     RESPONSE7C=$(echo $RESPONSE7A | sed "s/^.*Location: //" | sed "s/^\(\S*\)\s.*/\1/")
+    echo "[Done] "
 
     #
     # Extract P2SH Address
@@ -74,12 +83,13 @@ if [ "$P2SH_ADDRESS" == "" ]; then
 
     #
     # Add P2SH Address to our own copy of the contract
-    RESPONSE9=$(echo $RESPONSE6 | sed "s/^\(.*\"p2sh-address\":\"\)\(\".*\)$/\1$P2SH_ADDRESS\2/")
+    PROPOSAL3OF3=$(echo $PROPOSAL2OF3 | sed "s/^\(.*\"p2sh-address\":\"\)\(\".*\)$/\1$P2SH_ADDRESS\2/")
 
     #
     # Connect to Alice's BTA and instruct it to post bond. This
     # part will end up credentialled up the wazoo. Expect "201"
-    RESPONSE10A=$(wget -S --method=POST --header=Content-Type:application/json --body-data=$RESPONSE9 -q -O - --no-check-certificate "https://alices-bta.mpsvr.com:8443/bond" 2>&1)
+    echo -n "Fund the P2SH address and so commit to the bond. "
+    RESPONSE10A=$(wget -S --method=POST --header=Content-Type:application/json --body-data=$PROPOSAL3OF3 -q -O - --no-check-certificate "https://alices-bta.mpsvr.com:8443/bond" 2>&1)
     RESPONSE10B=$(echo $RESPONSE10A | sed "s/^HTTP\/1.1 //" | sed "s/^\(...\).*/\1/")
     if [ "$RESPONSE10B" != "201" ]; then
 	echo "Didn't get 201 response when POSTting the bond\n"
@@ -89,17 +99,19 @@ if [ "$P2SH_ADDRESS" == "" ]; then
     fi
     # Resource = /bond/txid
     RESPONSE10C=$(echo $RESPONSE10A | sed "s/^.*\(Location: \S*\)\s.*/\1/")
+    echo "[Done]"
 fi
 #
 # Alice's BTA has posted bond to the blockchain, we now want to
 # see Bob's BTA confirm it. That might take a while during which
 # time Bob may give some or complete access on the assumption
 # the bond will arrive. The BUA should periodically poll Bob's
-# BTA for final confirmation
+# BTA for final confirmation,
 #
-# HTTP2 allows us to be told when its arrived but for now we'll
+# HTTP2 allows us to be told when it's arrived but for now we'll
 # just poll for it
 #
+echo "Poll BTA for '200' & confirmation code once it sees bond on the blockchain, 30 second sleep if not. "
 RESPONSE11B='202'
 until [ "$RESPONSE11B" != "202" ]; do
     TIMESTAMP=$(date +%s)
@@ -110,22 +122,23 @@ until [ "$RESPONSE11B" != "202" ]; do
 	sleep 30
     fi
 done
-echo $TIMESTAMP": "$RESPONSE11B
+echo -n $TIMESTAMP": "$RESPONSE11B" "
+echo "[Done]"
 
 #
 # Strip out the header we need
-# RESPONSE12=$(echo $RESPONSE11 | sed 's/^.*+OK //' | tr -d "\n")
-RESPONSE12=$(echo $RESPONSE11A | sed "s/^.*\(berewic-bond-confirmation: \S*\).*/\1/")
+# BOND_CONFIRMATION_CODE=$(echo $RESPONSE11 | sed 's/^.*+OK //' | tr -d "\n")
+BOND_CONFIRMATION_CODE=$(echo $RESPONSE11A | sed "s/^.*\(berewic-bond-confirmation: \S*\).*/\1/")
 echo "Header which confirms bond acceptable will be:"
-echo $RESPONSE12
+echo $BOND_CONFIRMATION_CODE
 
 #
 # Save the header provided back
-echo $RESPONSE12 >>$CONFIRMATIONS_DIR/confirmations
+echo $BOND_CONFIRMATION_CODE >>$CONFIRMATIONS_DIR/confirmations
 
 #
 # We can now use the header to prove the bonding status to
 # the satisfaction of the covered resource
-RESPONSE13=$(wget --method=GET -q -O - --header="$RESPONSE12" http://berewic.com/covered-resource)
-echo "Server response to the above header:"
-echo $RESPONSE13
+# RESPONSE13=$(wget --method=GET -q -O - --header="$BOND_CONFIRMATION_CODE" http://berewic.com/covered-resource)
+# echo "Server response to the above header:"
+# echo $RESPONSE13
