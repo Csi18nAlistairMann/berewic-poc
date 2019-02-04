@@ -12,10 +12,12 @@ Also helpers :
 
 ## /berewic-transport-agent
 A PHP file simulating a BTA
+
 ###/berewic-transport-agent/bond_server_v1.php
 Simulate /bond.
 GET /bond/N at Bob's BTA obtains the status (+ confirmation code) due for P2SH address matching N
 POST /bond at Alice's BTA takes a proposal and commits funds to it
+
 ###/berewic-transport-agent/proposal_server_v1.php
 Simulate /proposal
 GET /proposal/<HOST>/<URI>?idv1=<A>&ratev1=<B>&hmacv1=<C> at Bob's BTA obtains proposals for that user A at host HOST etc
