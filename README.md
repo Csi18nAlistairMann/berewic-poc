@@ -20,7 +20,7 @@ POST /bond at Alice's BTA takes a proposal and commits funds to it.
 
 ### /berewic-transport-agent/proposal_server_v1.php
 Simulate /proposal  
-GET /proposal/[HOST]/[URI]?idv1=[A]&ratev1=[B]&hmacv1=[C] at Bob's BTA obtains proposals for that user A at host HOST etc.
+GET /proposal/[HOST]/[URI]?idv1=[A]&ratev1=[B]&hmacv1=[C] at Bob's BTA obtains proposals for that user A at host HOST etc.  
 PUT /proposal/[HOST]/[URI]?idv1=[A]&ratev1=[B]&hmacv1=[C] at Bob's BTA accepts the uploaded proposal and asks for the P2SH address.  
 
 ## /berewic-user-agent/user-agent.sh
